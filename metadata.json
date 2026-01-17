@@ -1,0 +1,8 @@
+{
+  "name": "GradeWithAI - Técnico em Administração",
+  "description": "SaaS platform for Google Classroom assignment management and AI-powered pedagogical feedback for technical professional education.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
