@@ -1,16 +1,7 @@
 
 import React, { useState } from 'react';
 import { ICONS } from '../constants';
-
-const PERMISSIONS = [
-  { text: "Veja os cursos que você está ministrando.", scope: "classroom.courses.readonly" },
-  { text: "Veja os alunos que você está ensinando.", scope: "classroom.rosters.readonly" },
-  { text: "Veja o tipo de trabalho enviado pelos alunos.", scope: "classroom.student-submissions.students.readonly" },
-  { text: "Visualize os trabalhos dos alunos para corrigi-los.", scope: "drive.readonly" },
-  { text: "Enviar notas de volta para o Google Classroom", scope: "classroom.coursework.students" },
-  { text: "Envie seu feedback pelo Google Classroom.", scope: "drive.file" },
-  { text: "Acesse as respostas do Formulário Google para avaliação.", scope: "forms.responses.readonly" },
-];
+import GoogleClassroomConnection from './GoogleClassroomConnection';
 
 interface ConnectionsViewProps {
   isConnected: boolean;
@@ -20,19 +11,9 @@ interface ConnectionsViewProps {
 
 const ConnectionsView: React.FC<ConnectionsViewProps> = ({ isConnected, onConnect, onDisconnect }) => {
   const [activeTab, setActiveTab] = useState('google');
-  const [isConnecting, setIsConnecting] = useState(false);
-
-  const handleStartConnection = () => {
-    setIsConnecting(true);
-    // Simula o delay do OAuth do Google
-    setTimeout(() => {
-      onConnect();
-      setIsConnecting(false);
-    }, 2000);
-  };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
       <header className="flex flex-col gap-4">
         <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
           <span>Painel</span>
@@ -41,129 +22,66 @@ const ConnectionsView: React.FC<ConnectionsViewProps> = ({ isConnected, onConnec
         </div>
 
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Conexões e Integrações</h1>
-          <p className="text-sm text-gray-500">Conecte sua conta do RIOS às ferramentas que você já usa.</p>
+          <h1 className="text-3xl font-black text-gray-900 tracking-tighter">Conexões e Integrações</h1>
+          <p className="text-sm text-gray-500 font-medium">Gerencie suas pontes digitais entre o RIOS e suas ferramentas de ensino preferidas.</p>
         </div>
       </header>
 
       {/* Tabs */}
-      <div className="flex bg-gray-100 p-1 rounded-xl w-full max-w-2xl">
+      <div className="flex bg-gray-100 p-1.5 rounded-2xl w-full max-w-xl shadow-inner border border-gray-200">
         <button 
           onClick={() => setActiveTab('google')}
-          className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'google' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`flex-1 flex items-center justify-center gap-3 py-3 text-sm font-bold rounded-xl transition-all ${activeTab === 'google' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-700'}`}
         >
+          <ICONS.Classroom className={`w-4 h-4 ${activeTab === 'google' ? 'text-white' : 'text-gray-400'}`} />
           Google Classroom
         </button>
         <button 
-          onClick={() => setActiveTab('tela')}
-          className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'tela' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500 hover:text-gray-700'}`}
+          onClick={() => setActiveTab('canvas')}
+          className={`flex-1 flex items-center justify-center gap-3 py-3 text-sm font-bold rounded-xl transition-all ${activeTab === 'canvas' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-700'}`}
         >
+          <ICONS.Assignments className={`w-4 h-4 ${activeTab === 'canvas' ? 'text-white' : 'text-gray-400'}`} />
           Canvas LMS
         </button>
         <button 
           disabled
-          className="flex-1 py-2.5 text-sm font-bold rounded-lg text-gray-400 cursor-not-allowed italic"
+          className="flex-1 py-3 text-sm font-bold rounded-xl text-gray-400 cursor-not-allowed flex items-center justify-center gap-2"
         >
-          Microsoft Teams
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          Moodle
         </button>
       </div>
 
-      {!isConnected ? (
-        <section className="bg-white rounded-[2rem] shadow-xl shadow-indigo-50/50 border border-indigo-50 overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-2">
-            <div className="p-10 space-y-6">
-              <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
-                <ICONS.Classroom className="w-10 h-10" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-2xl font-bold text-gray-900">Turbine sua produtividade com Google Classroom</h3>
-                <p className="text-gray-500 leading-relaxed">Sincronize automaticamente seus alunos, tarefas e notas. Economize horas de trabalho manual usando nossa correção inteligente integrada diretamente na sua sala de aula.</p>
-              </div>
-              
-              <ul className="space-y-3">
-                <li className="flex items-center gap-3 text-sm text-gray-600 font-medium">
-                  <ICONS.Check className="w-5 h-5 text-emerald-500" /> Importação instantânea de turmas
-                </li>
-                <li className="flex items-center gap-3 text-sm text-gray-600 font-medium">
-                  <ICONS.Check className="w-5 h-5 text-emerald-500" /> Sincronização de rubricas pedagógicas
-                </li>
-                <li className="flex items-center gap-3 text-sm text-gray-600 font-medium">
-                  <ICONS.Check className="w-5 h-5 text-emerald-500" /> Postagem de notas com um clique
-                </li>
-              </ul>
-
-              <button 
-                onClick={handleStartConnection}
-                disabled={isConnecting}
-                className="w-full py-4 bg-white border-2 border-gray-100 rounded-2xl flex items-center justify-center gap-4 hover:border-indigo-600 hover:shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
-              >
-                {isConnecting ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-indigo-600 border-t-transparent"></div>
-                ) : (
-                  <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />
-                )}
-                <span className="font-bold text-gray-700">{isConnecting ? 'Autenticando...' : 'Conectar com Google Classroom'}</span>
-              </button>
-              <p className="text-[10px] text-gray-400 text-center uppercase tracking-widest font-bold">Ambiente 100% Seguro e Criptografado</p>
+      <div className="mt-8">
+        {activeTab === 'google' ? (
+          <GoogleClassroomConnection 
+            isConnected={isConnected} 
+            onConnect={onConnect} 
+            onDisconnect={onDisconnect} 
+          />
+        ) : (
+          <div className="bg-white rounded-[2.5rem] p-20 border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center space-y-6">
+            <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center text-gray-300 border border-gray-100">
+              <ICONS.ExternalLink className="w-10 h-10" />
             </div>
-            <div className="bg-indigo-600 p-10 flex items-center justify-center relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-20 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
-               <div className="relative z-10 text-white space-y-4">
-                  <div className="p-4 bg-white/20 backdrop-blur-md rounded-3xl border border-white/20 shadow-2xl rotate-3">
-                    <img src="https://picsum.photos/seed/edu/400/250" className="rounded-2xl shadow-inner" alt="Preview" />
-                  </div>
-                  <div className="text-center">
-                    <p className="font-bold text-indigo-100">Visão Integrada</p>
-                    <p className="text-xs text-indigo-200">Gerencie tudo de um só lugar</p>
-                  </div>
-               </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold text-gray-900">Integração em Desenvolvimento</h3>
+              <p className="text-gray-500 max-w-md mx-auto">Estamos trabalhando arduamente para trazer o suporte ao {activeTab === 'canvas' ? 'Canvas' : 'Moodle'} o mais rápido possível.</p>
             </div>
-          </div>
-        </section>
-      ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-8 animate-in zoom-in-95 duration-500">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-xl font-bold text-gray-900">Google Classroom</h3>
-              <p className="text-sm text-gray-500 mt-1">Status: <span className="text-emerald-600 font-bold uppercase tracking-tight">Ativo e Sincronizado</span></p>
-            </div>
-            <button 
-              onClick={onDisconnect}
-              className="px-4 py-2 text-xs font-bold text-red-600 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors"
-            >
-              Desconectar conta
+            <button className="px-8 py-3 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-white transition-all text-sm">
+              Notifique-me quando estiver pronto
             </button>
           </div>
+        )}
+      </div>
 
-          <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-emerald-600 shadow-sm">
-              <ICONS.CircleCheck className="w-7 h-7" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-emerald-900">Tudo pronto!</p>
-              <p className="text-xs text-emerald-700/80">O RIOS agora tem permissão para ler e escrever no seu Classroom de forma segura.</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Escopos de Acesso Autorizados</h4>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {PERMISSIONS.map((perm, i) => (
-                <div key={i} className="flex gap-4 p-4 border border-gray-100 rounded-xl bg-gray-50/30 group hover:bg-white hover:border-indigo-100 transition-all">
-                  <div className="shrink-0 mt-0.5 text-emerald-500 group-hover:scale-110 transition-transform">
-                    <ICONS.CircleCheck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-800">{perm.text}</p>
-                    <p className="text-[10px] font-mono text-gray-400 mt-1">{perm.scope}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Trust Badges */}
+      <div className="flex items-center justify-center gap-12 pt-8 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_Classroom_Logo.svg/1024px-Google_Classroom_Logo.svg.png" className="h-8 object-contain" alt="Classroom" />
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/1024px-Google_2015_logo.svg.png" className="h-6 object-contain" alt="Google" />
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/GitHub_Invertocat_Logo.svg/1024px-GitHub_Invertocat_Logo.svg.png" className="h-8 object-contain" alt="GitHub" />
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_Drive_logo_%282014-2020%29.svg/1024px-Google_Drive_logo_%282014-2020%29.svg.png" className="h-8 object-contain" alt="Drive" />
+      </div>
     </div>
   );
 };
