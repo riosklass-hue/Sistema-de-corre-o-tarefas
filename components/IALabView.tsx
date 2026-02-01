@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { ICONS } from '../constants';
 import { generateImage, analyzeImage, searchGrounding } from '../services/geminiService';
 
-const ASPECT_RATIOS = ["1:1", "2:3", "3:2", "3:4", "4:3", "9:16", "16:9", "21:9"];
+// Updated to only include supported values per API guidelines
+const ASPECT_RATIOS = ["1:1", "3:4", "4:3", "9:16", "16:9"];
 
 const IALabView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'image' | 'analysis' | 'search'>('image');
@@ -73,8 +74,7 @@ const IALabView: React.FC = () => {
     } catch (err) {
       alert("Erro na pesquisa inteligente.");
     } finally {
-      setSearchLoading(true);
-      setTimeout(() => setSearchLoading(false), 100); // UI fix for grounding metadata
+      setSearchLoading(false);
     }
   };
 

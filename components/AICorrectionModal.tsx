@@ -45,7 +45,7 @@ const AICorrectionModal: React.FC<AICorrectionModalProps> = ({ assignment, submi
         setManualGrade(res.score);
         setManualFeedback(res.pedagogicalFeedback);
       } catch (err) {
-        setError("Erro ao processar correção com IA. Verifique sua chave API.");
+        setError("Erro ao processar correção com IA. Verifique se sua chave de API do Gemini está configurada corretamente nas variáveis de ambiente e se possui as permissões necessárias.");
         console.error(err);
       } finally {
         setLoading(false);
@@ -77,9 +77,12 @@ const AICorrectionModal: React.FC<AICorrectionModalProps> = ({ assignment, submi
               <p className="text-blue-600 font-medium animate-pulse">A IA está analisando a resposta pedagogicamente...</p>
             </div>
           ) : error ? (
-            <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl">
-              <p className="font-semibold">Ocorreu um erro:</p>
-              <p>{error}</p>
+            <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-xl space-y-2">
+              <div className="flex items-center gap-2 font-bold">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Ocorreu um erro na Correção
+              </div>
+              <p className="text-sm leading-relaxed">{error}</p>
             </div>
           ) : (
             <>

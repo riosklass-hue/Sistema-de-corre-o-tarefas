@@ -2,14 +2,77 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AIGradeResponse, Rubric, Assignment, Submission } from "../types";
 
+// Inicialização centralizada
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+export const generateRubric = async (assignmentTitle: string, assignmentDescription: string): Promise<Rubric> => {
+  const model = "gemini-3-pro-preview"; // Tarefa complexa de design instrucional
+  
+  const systemInstruction = `
+    Você é um Pedagogo especialista em Ensino Técnico em Administração e Design Instrucional.
+    Sua tarefa é criar rubricas de avaliação detalhadas e pedagógicas para tarefas de alunos.
+    As rubricas devem ser justas, claras e alinhadas com as competências do mercado de trabalho.
+  `;
+
+  const prompt = `
+    Crie uma rubrica de avaliação para a seguinte tarefa:
+    Título: ${assignmentTitle}
+    Descrição: ${assignmentDescription}
+
+    A rubrica deve ter pelo menos 3 critérios (ex: Domínio Técnico, Clareza, Aplicação Prática).
+    Cada critério deve ter 4 níveis: Excelente (100% da nota), Bom (70%), Regular (40%), Insuficiente (0%).
+  `;
+
+  const response = await ai.models.generateContent({
+    model,
+    contents: prompt,
+    config: {
+      systemInstruction,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          id: { type: Type.STRING },
+          name: { type: Type.STRING },
+          criteria: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING },
+                title: { type: Type.STRING },
+                description: { type: Type.STRING },
+                levels: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      score: { type: Type.NUMBER },
+                      title: { type: Type.STRING },
+                      description: { type: Type.STRING }
+                    },
+                    required: ["score", "title", "description"]
+                  }
+                }
+              },
+              required: ["id", "title", "description", "levels"]
+            }
+          }
+        },
+        required: ["id", "name", "criteria"]
+      }
+    }
+  });
+
+  return JSON.parse(response.text || "{}");
+};
 
 export const correctAssignment = async (
   assignment: Assignment,
   submission: Submission,
   rubric: Rubric
 ): Promise<AIGradeResponse> => {
-  const model = "gemini-3-pro-preview";
+  const model = "gemini-3-pro-preview"; // Tarefa complexa de raciocínio pedagógico
   
   const systemInstruction = `
     Você é um Arquiteto de Software Educacional e Pedagogo especialista em Ensino Técnico em Administração.
@@ -21,7 +84,7 @@ export const correctAssignment = async (
     - Clareza na comunicação empresarial.
     - Capacidade de resolução de problemas práticos.
 
-    Você deve retornar um JSON estritamente no formato solicitado.
+    Seja encorajador mas rigoroso com a técnica. Retorne um JSON estritamente no formato solicitado.
   `;
 
   const prompt = `
@@ -57,81 +120,88 @@ export const correctAssignment = async (
     }
   });
 
-  return JSON.parse(response.text);
+  return JSON.parse(response.text || "{}");
 };
 
-// Chatbot help using gemini-3-pro-preview
 export const createChat = (systemInstruction: string) => {
   return ai.chats.create({
-    model: 'gemini-3-pro-preview',
+    model: 'gemini-3-pro-preview', // Kleo precisa de alto nível de raciocínio
     config: {
       systemInstruction,
     },
   });
 };
 
-// Image Generation using gemini-3-pro-image-preview
-export const generateImage = async (prompt: string, aspectRatio: string) => {
+export const getFastInsight = async (assignmentTitle: string, description: string) => {
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-image-preview',
+    model: 'gemini-flash-lite-latest', // Resposta ultra rápida e econômica
+    contents: `Dê uma dica ultra-rápida (máximo 15 palavras) para o professor sobre como abordar pedagogicamente esta tarefa: "${assignmentTitle}" - ${description}`,
+  });
+  return response.text || "";
+};
+
+export const getDetailedInsight = async (assignmentTitle: string, description: string) => {
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview', // Equilíbrio entre velocidade e qualidade
+    contents: `Como um especialista em educação técnica em administração, forneça uma análise pedagógica detalhada (cerca de 80-100 palavras) sobre como o professor pode abordar e avaliar esta tarefa da melhor forma possível. Foque em competências práticas e visão de mercado. Tarefa: "${assignmentTitle}" - ${description}`,
+  });
+  return response.text || "";
+};
+
+export const generateImage = async (prompt: string, aspectRatio: string): Promise<string> => {
+  const model = 'gemini-2.5-flash-image';
+  const response = await ai.models.generateContent({
+    model,
     contents: {
-      parts: [
-        {
-          text: `Crie uma imagem educacional profissional para um curso técnico de administração: ${prompt}`,
-        },
-      ],
+      parts: [{ text: prompt }],
     },
     config: {
       imageConfig: {
         aspectRatio: aspectRatio as any,
-        imageSize: "1K"
       },
     },
   });
 
-  for (const part of response.candidates[0].content.parts) {
+  const parts = response.candidates?.[0]?.content?.parts || [];
+  for (const part of parts) {
     if (part.inlineData) {
-      return `data:image/png;base64,${part.inlineData.data}`;
+      return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
     }
   }
-  return null;
+  return "";
 };
 
-// Image Analysis using gemini-3-pro-preview
-export const analyzeImage = async (base64Data: string, mimeType: string, prompt: string) => {
+export const analyzeImage = async (base64: string, mimeType: string, prompt: string): Promise<string> => {
+  const model = 'gemini-3-flash-preview';
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
+    model,
     contents: {
       parts: [
-        { inlineData: { data: base64Data, mimeType } },
-        { text: `Como um arquiteto de software educacional, analise esta imagem técnica e responda: ${prompt}` }
-      ]
-    }
+        {
+          inlineData: {
+            mimeType,
+            data: base64,
+          },
+        },
+        { text: prompt },
+      ],
+    },
   });
-  return response.text;
+  return response.text || "";
 };
 
-// Search Grounding using gemini-3-flash-preview
-export const searchGrounding = async (query: string) => {
+export const searchGrounding = async (query: string): Promise<{ text: string; sources: any[] }> => {
+  const model = 'gemini-3-flash-preview';
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: `Pesquise e explique conceitos atuais de administração aplicados a: ${query}`,
+    model,
+    contents: query,
     config: {
       tools: [{ googleSearch: {} }],
     },
   });
-  
-  return {
-    text: response.text,
-    sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
-  };
-};
 
-// Low-latency response using gemini-2.5-flash-lite
-export const getFastInsight = async (assignmentTitle: string, description: string) => {
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash-lite-latest',
-    contents: `Dê uma dica ultra-rápida (máximo 15 palavras) para o professor sobre como abordar pedagogicamente esta tarefa: "${assignmentTitle}" - ${description}`,
-  });
-  return response.text;
+  return {
+    text: response.text || "",
+    sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || [],
+  };
 };

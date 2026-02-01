@@ -17,7 +17,7 @@ const AskKleoView: React.FC = () => {
 
   useEffect(() => {
     if (!chatRef.current) {
-      chatRef.current = createChat('Você é Kleo, um assistente pedagógico de IA para o GradeWithAI. Você ajuda professores do ensino técnico em administração com dúvidas sobre o sistema, rubricas, correção e pedagogia. Seja formal, útil e use um tom encorajador.');
+      chatRef.current = createChat('Você é Kleo, um assistente pedagógico de IA para o sistema RIOS CORREÇÃO. Você ajuda professores do ensino técnico em administração com dúvidas sobre o sistema, rubricas, correção e pedagogia. Seja formal, útil e use um tom encorajador.');
     }
   }, []);
 
@@ -48,15 +48,15 @@ const AskKleoView: React.FC = () => {
 
   const startNewChat = () => {
     setMessages([]);
-    chatRef.current = createChat('Você é Kleo, um assistente pedagógico de IA...');
+    chatRef.current = createChat('Você é Kleo, um assistente pedagógico de IA para o sistema RIOS CORREÇÃO...');
   };
 
   const suggestions = [
     {
-      title: "Comece a usar o GradeWithAI",
-      desc: "O que é o GradeWithAI e como posso começar a usá-lo?",
+      title: "Comece a usar o RIOS CORREÇÃO",
+      desc: "O que é o RIOS CORREÇÃO e como posso começar a usá-lo?",
       icon: <ICONS.FileText className="w-5 h-5 text-gray-400" />,
-      prompt: "Como posso começar a usar o GradeWithAI para corrigir minhas tarefas?"
+      prompt: "Como posso começar a usar o RIOS CORREÇÃO para corrigir minhas tarefas?"
     },
     {
       title: "Confira os resultados da avaliação",
